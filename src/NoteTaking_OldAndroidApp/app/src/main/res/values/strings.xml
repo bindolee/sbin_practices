@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">NoteTaking App</string>
+    <string name="action_create">Create</string>
+    <string name="delete">Delete</string>
+</resources>
