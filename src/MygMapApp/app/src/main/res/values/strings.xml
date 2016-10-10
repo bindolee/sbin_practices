@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">mygmapapp</string>
+    <string name="main_option">option</string>
+    <string name="map_info">Map Informations</string>
+</resources>
