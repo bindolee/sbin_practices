@@ -1,6 +1,7 @@
 package sbin.com.mygmapapp;
 
 import android.app.Dialog;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -27,15 +28,20 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-
+import com.google.android.gms.maps.model.Polygon;
+import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends FragmentActivity implements
@@ -55,9 +61,21 @@ public class MainActivity extends FragmentActivity implements
         SANDIEGO_LAT=32.954561,
         SANDIEGO_LNG=-117.138611;
 
-    private static final float DEFAULT_ZOOM = 17;
-    Marker mMarker;
+    private static final boolean USES_POLYGONLINE = false;
+    private static final boolean USES_POLYGON = false;
+    private static final boolean USES_CIRCLE = true;
 
+    private static final float DEFAULT_ZOOM = 17;
+    Marker mMarker1;
+    Marker mMarker2;
+    ArrayList<Marker> mMarkers = new ArrayList<Marker>();
+    Marker mMarker_USE_CIRCLE;
+    Circle mCircle;
+
+    private static final int POLYGON_POINTS = 3;
+
+    Polygon     mShape;
+    Polyline    mLine;
 
     GoogleMap mMap; // need to add compile dependencis on build.gradle by compile import com.google.android.gms:play-services-maps:9.6.1
 
@@ -117,12 +135,12 @@ public class MainActivity extends FragmentActivity implements
                 TextView tvLng = (TextView) v.findViewById(R.id.tv_lng);
                 TextView tvSnip = (TextView) v.findViewById(R.id.tv_snippet);
 
-                LatLng ll = mMarker.getPosition();
+                LatLng ll = marker.getPosition();
 
-                tvlocal.setText(mMarker.getTitle());
+                tvlocal.setText(marker.getTitle());
                 tvLat.setText("Latitue: "+ ll.latitude);
                 tvLng.setText("Longitude: "+ ll.longitude);
-                tvSnip.setText(mMarker.getSnippet());
+                tvSnip.setText(marker.getSnippet());
 
                 return v;
             }
@@ -282,23 +300,110 @@ public class MainActivity extends FragmentActivity implements
     }
 
     private void setMarker(String locality, String country, double lat, double lng) {
-
-        if (mMarker != null){
-            mMarker.remove();
+        LatLng ll = new LatLng(lat,lng);
+        if(USES_POLYGON) {
+            if (mMarkers.size() == POLYGON_POINTS) {
+                removeEverything();
+            }
         }
         //Marker options uses builder type constructor
         MarkerOptions options = new MarkerOptions()
                 .title(locality)
-                .position(new LatLng(lat,lng))
-/*                .icon(BitmapDescriptorFactory.defaultMarker(
-                        BitmapDescriptorFactory.HUE_BLUE)); */
+                .position(ll)
+                .anchor(.5f,.5f) // 0.0  ~ 1.0 .. so .5 is the center..
+ //               .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_mapmarker))
                 .draggable(true); // this makes marker draggble.
 
         if (country.length() >0 ){
             options.snippet(country);
         }
-        mMarker = mMap.addMarker(options); // need to track the marker..in mamstatemanager too.
+
+        if(USES_POLYGON) {
+            mMarkers.add(mMap.addMarker(options));
+            if (mMarkers.size() == POLYGON_POINTS) {
+                drawPolygon();
+            }
+        }
+        else if (USES_POLYGONLINE) {
+            if (mMarker1 == null) {
+                mMarker1 = mMap.addMarker(options);
+            } else if (mMarker2 == null) {
+                mMarker2 = mMap.addMarker(options);
+                drawLine();
+            } else {
+                removeEverything();
+                mMarker1 = mMap.addMarker(options);
+                mCircle = drawCircle(ll);
+            }
+        }
+        else if (USES_CIRCLE){
+            // you need to save the shape circle to preferences..if you want persistent data.
+            if (mMarker_USE_CIRCLE != null){
+                removeEverything();
+            }
+            mMarker_USE_CIRCLE = mMap.addMarker(options);
+            mCircle = drawCircle(ll);
+        }
+        //mMarker = mMap.addMarker(options); // need to track the marker..in mamstatemanager too.
+    }
+
+    private Circle drawCircle(LatLng ll) {
+        CircleOptions options = new CircleOptions()
+                .center(ll)
+                .radius(1000)
+                .fillColor(0x330000FF) // transparent color
+                .strokeColor(Color.BLUE)
+                .strokeWidth(3);
+
+        return mMap.addCircle(options);
+    }
+
+    private void drawLine() {
+        PolylineOptions options = new PolylineOptions()
+                .add(mMarker1.getPosition())
+                .add(mMarker2.getPosition())
+                .color(Color.BLUE)
+                .width(5); // default is 10
+
+        mLine = mMap.addPolyline(options);
+    }
+
+    private void removeEverything() {
+        if (USES_POLYGONLINE) {
+            mMarker1.remove();
+            mMarker1 = null;
+            mMarker2.remove();
+            mMarker2 = null;
+            mLine.remove();
+        }
+        else if (USES_POLYGON) {
+            for (Marker marker : mMarkers) {
+                marker.remove();
+            }
+            mMarkers.clear();
+
+            mShape.remove();
+            mShape = null;
+        }
+        else if (USES_CIRCLE) {
+            mMarker_USE_CIRCLE.remove();
+            mMarker_USE_CIRCLE = null;
+            mCircle.remove();
+            mCircle = null;
+        }
+    }
+
+    private void drawPolygon(){
+        PolygonOptions options = new PolygonOptions()
+                .fillColor(0x33000FF)
+                .strokeWidth(3)
+                .strokeColor(Color.BLUE);
+
+        for (int i=0;i<POLYGON_POINTS;i++){
+            options.add(mMarkers.get(i).getPosition());
+        }
+        mShape = mMap.addPolygon(options);
     }
 
     @Override
