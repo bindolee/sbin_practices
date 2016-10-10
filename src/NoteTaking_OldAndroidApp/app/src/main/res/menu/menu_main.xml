@@ -1,0 +1,11 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="plainoldnotes.sbin.com.notetakingoldandroidapp.MainActivity">
+    <item
+        android:id="@+id/action_create"
+        android:orderInCategory="100"
+        android:title="@string/action_create"
+        app:showAsAction="always|withText"
+        android:icon="@drawable/create_note"/>
+</menu>
