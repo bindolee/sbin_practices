@@ -3,6 +3,7 @@ package sbin.com.mygameappandroid;
 import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
@@ -16,6 +17,8 @@ import sbin.com.mygameappandroid.utils.PixelHelper;
 public class Balloon extends ImageView implements Animator.AnimatorListener, ValueAnimator.AnimatorUpdateListener {
 
     private ValueAnimator mAnimator;
+    private BalloonListener mListener;
+    private boolean mPopped;
 
     public Balloon(Context context) {
         super(context);
@@ -23,8 +26,9 @@ public class Balloon extends ImageView implements Animator.AnimatorListener, Val
 
     public Balloon(Context context, int color, int rawHeight) {
         super(context);
-
+        mListener = (BalloonListener) context;
         this.setImageResource(R.drawable.balloon);
+
         this.setColorFilter(color);
 
         int rawWidth = rawHeight/2;
@@ -54,7 +58,10 @@ public class Balloon extends ImageView implements Animator.AnimatorListener, Val
 
     @Override
     public void onAnimationEnd(Animator animation) {
-
+        if (!mPopped){
+            //This balloon pops becuase use failed to pop.. (y position is 0..out of screen)
+            mListener.popBalloon(this, false);
+        }
     }
 
     @Override
@@ -70,5 +77,26 @@ public class Balloon extends ImageView implements Animator.AnimatorListener, Val
     @Override
     public void onAnimationUpdate(ValueAnimator animation) {
         setY((Float) animation.getAnimatedValue());
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (!mPopped && event.getAction() == MotionEvent.ACTION_DOWN){
+            mListener.popBalloon(this, true);
+            mPopped = true;
+            mAnimator.cancel();
+        }
+        return super.onTouchEvent(event);
+    }
+
+    public void setPopped(boolean popped){
+        mPopped = popped;
+        if(popped){
+            mAnimator.cancel();
+        }
+    }
+
+    public interface BalloonListener{
+        void popBalloon(Balloon balloon, boolean userTouch);
     }
 }
