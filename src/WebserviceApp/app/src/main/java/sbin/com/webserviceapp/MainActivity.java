@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import sbin.com.webserviceapp.model.Flower;
+import sbin.com.webserviceapp.parsers.FlowerXMLParser;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -80,8 +81,13 @@ public class MainActivity extends AppCompatActivity {
         task.execute(uri);
     }
 
-    public void UpdateDisplay(String message) {
-        output.append(message + "\n");
+    public void UpdateDisplay() {
+        if (flowerList != null){
+            for (Flower flower: flowerList) {
+                output.append(flower.getName() + "\n");
+            }
+        }
+
     }
 
     protected boolean isOnline(){
@@ -101,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
         //This execute before doInBackground() and this has access to the main thread
         @Override
         protected void onPreExecute() {
-            UpdateDisplay("Starting Task!");
+ //           UpdateDisplay("Starting Task!");
 
             // Simple way to fix progress bar when there is parall task is running
             if (task.size() == 0) {
@@ -116,9 +122,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(String... params) {
 
-            String content = null;
-            content = HttpManager.getData(params[0]);
-
+            String content = HttpManager.getData(params[0]);
             return content;
 
 /*
@@ -142,7 +146,9 @@ public class MainActivity extends AppCompatActivity {
         //This execute after doInBackground() and this has access to the main thread
         @Override
         protected void onPostExecute(String result) {
-            UpdateDisplay(result);
+
+            flowerList = FlowerXMLParser.parseFeed(result);
+            UpdateDisplay();
 
             // Simple way to fix progress bar when there is parallel task is running
             task.remove(this);
@@ -156,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
             /*for (int i=0; i<values.length; i++){
                 UpdateDisplay(values[i]);
             }*/
-            UpdateDisplay(values[0]);
+ //           UpdateDisplay(values[0]);
 
         }
     }
