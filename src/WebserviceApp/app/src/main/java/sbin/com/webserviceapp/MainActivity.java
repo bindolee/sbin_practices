@@ -16,11 +16,15 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
+import sbin.com.webserviceapp.model.Flower;
+
 public class MainActivity extends AppCompatActivity {
 
     TextView output;
     ProgressBar pb; // progress bar
     List<MyTask> task;
+
+    List<Flower> flowerList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
         if (id == R.id.action_main_option){
             if (isOnline()){
-                requestData();
+                requestData("http://services.hanselandpetal.com/feeds/flowers.xml");
             }
             else {
                 Toast.makeText(this, "Network isn't available", Toast.LENGTH_LONG).show();
@@ -61,15 +65,19 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void requestData() {
+    private void requestData(String uri) {
         //Initialise the MyTask(Async ) here and execute it...
         MyTask task = new MyTask();
 
 /*            //.execute excute task as serially.. we need parallel execite.. serial is primitive way
             task.execute("Param 1", "Param 2", "Param 3", "Param 4", "Param 5", "Param 6");*/
 
+/*
         //Parallel way of executing async thread -- THREAD_POOL_EXECUTOR. .. don't choose serial way
         task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "Param 1", "Param 2", "Param 3", "Param 4", "Param 5", "Param 6");
+*/
+        //way to pass http client here --
+        task.execute(uri);
     }
 
     public void UpdateDisplay(String message) {
@@ -108,6 +116,12 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(String... params) {
 
+            String content = null;
+            content = HttpManager.getData(params[0]);
+
+            return content;
+
+/*
             //This is getting progress on each input param and can be retrieved onProgressUpdate function
             for (int i=0; i<params.length; i++){
                 publishProgress("Working with" + params[i]);
@@ -122,6 +136,7 @@ public class MainActivity extends AppCompatActivity {
 
             //this returns string since <param1, param2, String> , the last paremeter(string) is return type
             return "Task Completed!";
+*/
         }
 
         //This execute after doInBackground() and this has access to the main thread
