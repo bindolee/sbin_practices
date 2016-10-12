@@ -1,5 +1,7 @@
 package sbin.com.webserviceapp;
 
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -9,6 +11,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,20 +50,41 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_main_option){
-            //Initialise the MyTask(Async ) here and execute it...
-            MyTask task = new MyTask();
+            if (isOnline()){
+                requestData();
+            }
+            else {
+                Toast.makeText(this, "Network isn't available", Toast.LENGTH_LONG).show();
+;            }
 
-/*            //.execute excute task as serially.. we need parallel execite.. serial is primitive way
-            task.execute("Param 1", "Param 2", "Param 3", "Param 4", "Param 5", "Param 6");*/
-
-            //Parallel way of executing async thread. .. don't choose serial way
-            task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "Param 1", "Param 2", "Param 3", "Param 4", "Param 5", "Param 6");
         }
         return super.onOptionsItemSelected(item);
     }
 
+    private void requestData() {
+        //Initialise the MyTask(Async ) here and execute it...
+        MyTask task = new MyTask();
+
+/*            //.execute excute task as serially.. we need parallel execite.. serial is primitive way
+            task.execute("Param 1", "Param 2", "Param 3", "Param 4", "Param 5", "Param 6");*/
+
+        //Parallel way of executing async thread -- THREAD_POOL_EXECUTOR. .. don't choose serial way
+        task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "Param 1", "Param 2", "Param 3", "Param 4", "Param 5", "Param 6");
+    }
+
     public void UpdateDisplay(String message) {
         output.append(message + "\n");
+    }
+
+    protected boolean isOnline(){
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isConnectedOrConnecting()){
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     //android.os.AsyncTask<Params, Progress, Result>
