@@ -1,8 +1,9 @@
 package sbin.com.simplefragmentandroid;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v7.app.AlertDialog;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,6 +15,7 @@ public class MainActivity extends AppCompatActivity
 
     public static final String FLOWER_BUNDLE = "FLOWER_BUNDLE";
     private static final int REQUEST_CODE = 1001;
+    private static final int REQUEST_CODE2 = 1002;
     private boolean isTwoPane = false;
 
     @Override
@@ -42,7 +44,7 @@ public class MainActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if(id == R.id.main_option){
-            ScreenUtility utility = new ScreenUtility(this);
+/*            ScreenUtility utility = new ScreenUtility(this);
             String output = "Width: " + utility.getWidth() +", " +
                     "Height: " + utility.getHeight();
 
@@ -50,7 +52,10 @@ public class MainActivity extends AppCompatActivity
             builder.setMessage(output)
                     .setTitle("Dimensions")
                     .create()
-                    .show();
+                    .show();*/
+            Intent intent = new Intent();
+            intent.setClass(this, MyPrefsActivity.class);
+            startActivityForResult(intent,REQUEST_CODE2);
 
             return true;
         }
@@ -73,6 +78,24 @@ public class MainActivity extends AppCompatActivity
             Intent intent = new Intent(this, FlowerDetailActivity.class);
             intent.putExtra(FLOWER_BUNDLE, b);
             startActivityForResult(intent, REQUEST_CODE);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE2){
+            SharedPreferences myPrefs =
+                    PreferenceManager.getDefaultSharedPreferences(this);
+            boolean pref1 = myPrefs.getBoolean("pref1", false);
+            //Toast.makeText(this,"Preference: "+pref1,Toast.LENGTH_SHORT).show();
+;
+            MyDialogFragment dialog = new MyDialogFragment();
+            Bundle b = new Bundle();
+            b.putString("message","Preference: "+pref1);
+            dialog.setArguments(b);
+
+            dialog.show(getFragmentManager(),"MyDialog");
         }
     }
 }
