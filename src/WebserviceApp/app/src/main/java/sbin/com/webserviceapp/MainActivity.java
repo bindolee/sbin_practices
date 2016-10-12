@@ -56,7 +56,8 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
         if (id == R.id.action_main_option){
             if (isOnline()){
-                requestData("http://services.hanselandpetal.com/feeds/flowers.json");
+                requestData("http://services.hanselandpetal.com/secure/flowers.json");
+                //requestData("http://services.hanselandpetal.com/feeds/flowers.json");
                 //requestData("http://services.hanselandpetal.com/feeds/flowers.xml");
             }
             else {
@@ -123,7 +124,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(String... params) {
 
-            String content = HttpManager.getData(params[0]);
+            String content = HttpManager.getData(params[0],"feeduser","feedpassword");
+            //String content = HttpManager.getData(params[0]);
             return content;
 
 /*
@@ -148,15 +150,23 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
 
-            flowerList = FlowerJSONParser.parseFeed(result);
-            //flowerList = FlowerXMLParser.parseFeed(result);
-            UpdateDisplay();
-
             // Simple way to fix progress bar when there is parallel task is running
             task.remove(this);
             if (task.size() == 0) {
                 pb.setVisibility(View.INVISIBLE);
             }
+
+            if (result == null){
+                //you can't pass this instance, since you are talking to
+                // main thread/activity's current instance from async task
+                Toast.makeText(MainActivity.this,"Can't connect to web service",Toast.LENGTH_LONG).show();
+                return;
+            }
+            flowerList = FlowerJSONParser.parseFeed(result);
+            //flowerList = FlowerXMLParser.parseFeed(result);
+            UpdateDisplay();
+
+
         }
 
         @Override
