@@ -92,7 +92,7 @@ public class HttpManager {
 
         } catch (Exception e) {
             e.printStackTrace();
-            //This try -catch needed in case of authentication is failed.. 
+            //This try -catch needed in case of authentication is failed..
             try {
                 int status = con.getResponseCode();
             } catch (IOException e1) {

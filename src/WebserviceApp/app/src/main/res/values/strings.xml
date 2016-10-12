@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Catalog</string>
     <string name="option">DO TASK</string>
+    <string name="flower_name_placeholder">Flower name</string>
 </resources>

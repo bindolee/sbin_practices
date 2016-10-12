@@ -5,12 +5,11 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.text.method.ScrollingMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -21,20 +20,20 @@ import sbin.com.webserviceapp.parsers.FlowerJSONParser;
 
 public class MainActivity extends AppCompatActivity {
 
-    TextView output;
     ProgressBar pb; // progress bar
     List<MyTask> task;
+    ListView listView;
 
     List<Flower> flowerList;
+    FlowerAdapter adapter;
+
+    private static final String PHOTOS_BASE_URL =
+            "http://services.hanselandpetal.com/photos/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        //Set up the TextView reference by findViewByid
-        output = (TextView) findViewById(R.id.main_textview1);
-        output.setMovementMethod(new ScrollingMovementMethod());
 
         //Set up the ProgressBar reference by findViewByid
         pb = (ProgressBar) findViewById(R.id.progressBar1);
@@ -43,6 +42,8 @@ public class MainActivity extends AppCompatActivity {
 
         //Instanciate List object here.. java7 style syntax
         task = new ArrayList<>();
+
+        UpdateDisplay();
     }
 
     @Override
@@ -84,11 +85,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void UpdateDisplay() {
-        if (flowerList != null){
+        adapter = new FlowerAdapter(this,R.layout.item_flower,flowerList);
+        listView = (ListView) findViewById(R.id.main_listview1);
+
+        //Please check the error condition. on 1st time when app is launching,
+        //flowerList has nothing .null.. so.. in this case don't do any display otherwise, it will crash
+        if (flowerList != null) {
+            if (adapter != null && adapter.getCount() > 0) {
+                listView.setAdapter(adapter);
+            }
+        }
+/*        if (flowerList != null){
             for (Flower flower: flowerList) {
                 output.append(flower.getName() + "\n");
             }
-        }
+        }*/
 
     }
 
