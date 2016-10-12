@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import sbin.com.webserviceapp.model.Flower;
-import sbin.com.webserviceapp.parsers.FlowerXMLParser;
+import sbin.com.webserviceapp.parsers.FlowerJSONParser;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -56,7 +56,8 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
         if (id == R.id.action_main_option){
             if (isOnline()){
-                requestData("http://services.hanselandpetal.com/feeds/flowers.xml");
+                requestData("http://services.hanselandpetal.com/feeds/flowers.json");
+                //requestData("http://services.hanselandpetal.com/feeds/flowers.xml");
             }
             else {
                 Toast.makeText(this, "Network isn't available", Toast.LENGTH_LONG).show();
@@ -147,7 +148,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
 
-            flowerList = FlowerXMLParser.parseFeed(result);
+            flowerList = FlowerJSONParser.parseFeed(result);
+            //flowerList = FlowerXMLParser.parseFeed(result);
             UpdateDisplay();
 
             // Simple way to fix progress bar when there is parallel task is running

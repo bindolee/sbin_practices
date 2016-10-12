@@ -43,16 +43,16 @@ public class HttpManager {
 
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
         } finally {
             if (reader != null) {
                 try {
                     reader.close();
                 } catch (IOException e) {
                     e.printStackTrace();
-
+                    return null; // if you put this after if statement, it will return null
                 }
             }
-            return null;
         }
     }
 
