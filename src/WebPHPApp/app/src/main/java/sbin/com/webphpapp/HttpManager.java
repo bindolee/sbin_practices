@@ -6,6 +6,7 @@ import android.util.Log;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -125,6 +126,13 @@ public class HttpManager {
             URL url = new URL(uri);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod(requestPackage.getMethod());
+
+            if (requestPackage.getMethod().equals("POST")){
+                con.setDoOutput(true);
+                OutputStreamWriter writer = new OutputStreamWriter(con.getOutputStream());
+                writer.write(requestPackage.getEncodedParams());
+                writer.flush();
+            }
 
             // Connection is on. then build the reader input stream
             StringBuilder sb = new StringBuilder();
