@@ -11,19 +11,22 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
-
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 import sbin.com.webserviceapp.model.Flower;
-import sbin.com.webserviceapp.parsers.FlowerJSONParser;
 
 // This shows how to handle http using Volley instead of HTTP manger
 public class MainActivity extends AppCompatActivity {
+
+    public static final String PHOTOS_BASE_URL =
+            "http://services.hanselandpetal.com/photos/";
+
+    public static final String ENDPOINT =
+            "http://services.hanselandpetal.com";
 
     ProgressBar pb; // progress bar
     ListView listView;
@@ -31,8 +34,7 @@ public class MainActivity extends AppCompatActivity {
     List<Flower> flowerList;
     FlowerAdapter adapter;
 
-    public static final String PHOTOS_BASE_URL =
-            "http://services.hanselandpetal.com/photos/";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,24 +72,25 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    //Using Retrofit instead of Async task - Http handler
     private void requestData(String uri) {
-        //Using new HTTP handler - volley by google.
-        // Using stringrequest volley.. no need to use Async , since this volley has call back
-        // function to deal with it.
-        StringRequest request = new StringRequest(uri, new Response.Listener<String>() {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(ENDPOINT)
+                .build();
+
+        FlowersAPI api = retrofit.create(FlowersAPI.class);
+        api.getFeed(new Callback<List<Flower>>() {
             @Override
-            public void onResponse(String response) {
-                flowerList = FlowerJSONParser.parseFeed(response);
+            public void onResponse(Call<List<Flower>> call, Response<List<Flower>> response) {
+                flowerList = (List<Flower>) call;
                 UpdateDisplay();
             }
-        }, new Response.ErrorListener() {
+
             @Override
-            public void onErrorResponse(VolleyError error) {
-                Toast.makeText(MainActivity.this, error.getMessage(), Toast.LENGTH_LONG).show();
+            public void onFailure(Call<List<Flower>> call, Throwable t) {
+                Toast.makeText(MainActivity.this, t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
-        requestQueue.add(request);
     }
 
     public void UpdateDisplay() {
