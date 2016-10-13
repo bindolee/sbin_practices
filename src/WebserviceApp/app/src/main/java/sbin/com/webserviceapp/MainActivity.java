@@ -1,5 +1,7 @@
 package sbin.com.webserviceapp;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -12,6 +14,8 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -115,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //android.os.AsyncTask<Params, Progress, Result>
-    private class MyTask extends AsyncTask<String, String, String> {
+    private class MyTask extends AsyncTask<String, String, List<Flower>> {
 
         //This execute before doInBackground() and this has access to the main thread
         @Override
@@ -133,33 +137,29 @@ public class MainActivity extends AppCompatActivity {
         // or access mainthread method.. Access main thread method only can be doable
         // from pre, post , porgressupdate execute..etc
         @Override
-        protected String doInBackground(String... params) {
+        protected List<Flower> doInBackground(String... params) {
 
             String content = HttpManager.getData(params[0],"feeduser","feedpassword");
-            //String content = HttpManager.getData(params[0]);
-            return content;
+            flowerList = FlowerJSONParser.parseFeed(content);
 
-/*
-            //This is getting progress on each input param and can be retrieved onProgressUpdate function
-            for (int i=0; i<params.length; i++){
-                publishProgress("Working with" + params[i]);
-
-                //Mimic as if this thread takes long like 1 sec... -- sleep 1sec(pause 1sec)
-                try {
-                    Thread.sleep(1000); // sleep 1000 ms = 1 sec
-                } catch (InterruptedException e) {
+            // This is way to download bitmap image and use it
+            for (Flower flower : flowerList){
+                try{
+                    String imageUrl = PHOTOS_BASE_URL + flower.getPhoto();
+                    InputStream in = (InputStream) new URL(imageUrl).getContent();
+                    Bitmap bitmap = BitmapFactory.decodeStream(in);
+                    flower.setBitmap(bitmap);
+                    in.close();
+                }catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-
-            //this returns string since <param1, param2, String> , the last paremeter(string) is return type
-            return "Task Completed!";
-*/
+            return flowerList;
         }
 
         //This execute after doInBackground() and this has access to the main thread
         @Override
-        protected void onPostExecute(String result) {
+        protected void onPostExecute(List<Flower> result) {
 
             // Simple way to fix progress bar when there is parallel task is running
             task.remove(this);
@@ -173,11 +173,8 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this,"Can't connect to web service",Toast.LENGTH_LONG).show();
                 return;
             }
-            flowerList = FlowerJSONParser.parseFeed(result);
-            //flowerList = FlowerXMLParser.parseFeed(result);
+
             UpdateDisplay();
-
-
         }
 
         @Override

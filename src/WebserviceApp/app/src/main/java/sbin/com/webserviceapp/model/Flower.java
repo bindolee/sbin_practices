@@ -1,5 +1,7 @@
 package sbin.com.webserviceapp.model;
 
+import android.graphics.Bitmap;
+
 /**
  * Created by sbin on 10/12/2016.
  */
@@ -12,6 +14,17 @@ public class Flower {
     private String instructions;
     private double price;
     private String photo;
+
+    //Bitmat is needed to download the image from web and save it to this class
+    private Bitmap bitmap;
+
+    public Bitmap getBitmap() {
+        return bitmap;
+    }
+
+    public void setBitmap(Bitmap bitmap) {
+        this.bitmap = bitmap;
+    }
 
     public  int    getProductId() {
         return productId;
