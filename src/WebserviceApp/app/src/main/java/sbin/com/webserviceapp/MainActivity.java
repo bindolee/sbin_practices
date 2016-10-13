@@ -2,7 +2,6 @@ package sbin.com.webserviceapp;
 
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -12,16 +11,21 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import java.util.ArrayList;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
 import java.util.List;
 
 import sbin.com.webserviceapp.model.Flower;
 import sbin.com.webserviceapp.parsers.FlowerJSONParser;
 
+// This shows how to handle http using Volley instead of HTTP manger
 public class MainActivity extends AppCompatActivity {
 
     ProgressBar pb; // progress bar
-    List<MyTask> task;
     ListView listView;
 
     List<Flower> flowerList;
@@ -40,9 +44,6 @@ public class MainActivity extends AppCompatActivity {
         //void setVisibility (int visibility) -- visibility	int: One of VISIBLE, INVISIBLE, or GONE.
         pb.setVisibility(View.INVISIBLE); // Same as INVISITIBLE after import View.
 
-        //Instanciate List object here.. java7 style syntax
-        task = new ArrayList<>();
-
         UpdateDisplay();
     }
 
@@ -57,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
         if (id == R.id.action_main_option){
             if (isOnline()){
-                requestData("http://services.hanselandpetal.com/secure/flowers.json");
+                requestData("http://services.hanselandpetal.com/feeds/flowers.json");
                 //requestData("http://services.hanselandpetal.com/feeds/flowers.json");
                 //requestData("http://services.hanselandpetal.com/feeds/flowers.xml");
             }
@@ -70,18 +71,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void requestData(String uri) {
-        //Initialise the MyTask(Async ) here and execute it...
-        MyTask task = new MyTask();
-
-/*            //.execute excute task as serially.. we need parallel execite.. serial is primitive way
-            task.execute("Param 1", "Param 2", "Param 3", "Param 4", "Param 5", "Param 6");*/
-
-/*
-        //Parallel way of executing async thread -- THREAD_POOL_EXECUTOR. .. don't choose serial way
-        task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "Param 1", "Param 2", "Param 3", "Param 4", "Param 5", "Param 6");
-*/
-        //way to pass http client here --
-        task.execute(uri);
+        //Using new HTTP handler - volley by google.
+        // Using stringrequest volley.. no need to use Async , since this volley has call back
+        // function to deal with it.
+        StringRequest request = new StringRequest(uri, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                flowerList = FlowerJSONParser.parseFeed(response);
+                UpdateDisplay();
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(MainActivity.this, error.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(request);
     }
 
     public void UpdateDisplay() {
@@ -111,63 +117,6 @@ public class MainActivity extends AppCompatActivity {
         }
         else {
             return false;
-        }
-    }
-
-    //android.os.AsyncTask<Params, Progress, Result>
-    private class MyTask extends AsyncTask<String, String, List<Flower>> {
-
-        //This execute before doInBackground() and this has access to the main thread
-        @Override
-        protected void onPreExecute() {
- //           UpdateDisplay("Starting Task!");
-
-            // Simple way to fix progress bar when there is parall task is running
-            if (task.size() == 0) {
-                pb.setVisibility(View.VISIBLE);
-            }
-            task.add(this);
-        }
-
-        //doInbackground can't be accessed from user interface or main thread
-        // or access mainthread method.. Access main thread method only can be doable
-        // from pre, post , porgressupdate execute..etc
-        @Override
-        protected List<Flower> doInBackground(String... params) {
-
-            String content = HttpManager.getData(params[0],"feeduser","feedpassword");
-            flowerList = FlowerJSONParser.parseFeed(content);
-
-            return flowerList;
-        }
-
-        //This execute after doInBackground() and this has access to the main thread
-        @Override
-        protected void onPostExecute(List<Flower> result) {
-
-            // Simple way to fix progress bar when there is parallel task is running
-            task.remove(this);
-            if (task.size() == 0) {
-                pb.setVisibility(View.INVISIBLE);
-            }
-
-            if (result == null){
-                //you can't pass this instance, since you are talking to
-                // main thread/activity's current instance from async task
-                Toast.makeText(MainActivity.this,"Can't connect to web service",Toast.LENGTH_LONG).show();
-                return;
-            }
-
-            UpdateDisplay();
-        }
-
-        @Override
-        protected void onProgressUpdate(String... values) {
-            /*for (int i=0; i<values.length; i++){
-                UpdateDisplay(values[i]);
-            }*/
- //           UpdateDisplay(values[0]);
-
         }
     }
 }
