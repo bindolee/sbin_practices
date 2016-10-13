@@ -1,7 +1,5 @@
 package sbin.com.webserviceapp;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -14,8 +12,6 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
     List<Flower> flowerList;
     FlowerAdapter adapter;
 
-    private static final String PHOTOS_BASE_URL =
+    public static final String PHOTOS_BASE_URL =
             "http://services.hanselandpetal.com/photos/";
 
     @Override
@@ -142,18 +138,6 @@ public class MainActivity extends AppCompatActivity {
             String content = HttpManager.getData(params[0],"feeduser","feedpassword");
             flowerList = FlowerJSONParser.parseFeed(content);
 
-            // This is way to download bitmap image and use it
-            for (Flower flower : flowerList){
-                try{
-                    String imageUrl = PHOTOS_BASE_URL + flower.getPhoto();
-                    InputStream in = (InputStream) new URL(imageUrl).getContent();
-                    Bitmap bitmap = BitmapFactory.decodeStream(in);
-                    flower.setBitmap(bitmap);
-                    in.close();
-                }catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
             return flowerList;
         }
 

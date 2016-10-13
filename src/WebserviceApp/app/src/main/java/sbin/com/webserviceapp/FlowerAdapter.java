@@ -2,6 +2,9 @@ package sbin.com.webserviceapp;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +12,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
 
 import sbin.com.webserviceapp.model.Flower;
@@ -37,12 +42,66 @@ public class FlowerAdapter extends ArrayAdapter<Flower> {
         TextView tv = (TextView) view.findViewById(R.id.textView1);
         tv.setText(flower.getName());
 
-        //Dispaly Flower photo in imageview widget
-        ImageView image = (ImageView) view.findViewById(R.id.imageView1);
-        //this is to get saved bit map from flower and display it
-        image.setImageBitmap(flower.getBitmap());
-		
+        // if there is image in memory , just simple view it
+        if (flower.getBitmap() != null){
+            ImageView image = (ImageView) view.findViewById(R.id.imageView1);
+            image.setImageBitmap(flower.getBitmap());
+        }
+        // if not, then pack it up and create async task to download and displayit.
+        else{
+            FlowerAndView container = new FlowerAndView();
+            container.flower = flower;
+            container.view = view;
+
+            ImageLoader loader = new ImageLoader();
+            loader.execute(container);
+        }
+
 		return view;
 	}
+
+    /*
+    Need new class to pass several items as object..that's why created FlowerAndView class
+    then create new AsyncTask to load image as background .. not just downloading into memory once and
+    display at one.. which takes considerable long time.
+     */
+    class FlowerAndView {
+        public Flower flower;
+        public View view;
+        public Bitmap bitmap;
+    }
+
+    private class ImageLoader extends AsyncTask<FlowerAndView, Void, FlowerAndView >{
+
+        @Override
+        protected FlowerAndView doInBackground(FlowerAndView... params) {
+            FlowerAndView container = params[0];
+            Flower flower = container.flower;
+
+            try{
+                String imageUrl = MainActivity.PHOTOS_BASE_URL + flower.getPhoto();
+                InputStream in = (InputStream) new URL(imageUrl).getContent();
+                Bitmap bitmap = BitmapFactory.decodeStream(in);
+                flower.setBitmap(bitmap);
+                in.close();
+                container.bitmap = bitmap;
+                return container;
+
+            }catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(FlowerAndView result) {
+            ImageView image = (ImageView) result.view.findViewById(R.id.imageView1);
+            image.setImageBitmap(result.bitmap);
+
+            //this is savig for future use
+            result.flower.setBitmap(result.bitmap);
+        }
+    }
 
 }
