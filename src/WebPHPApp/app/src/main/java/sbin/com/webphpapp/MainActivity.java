@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
         if (id == R.id.action_main_option){
             if (isOnline()) {
-                requestData("http://services.hanselandpetal.com/restful.php");
+                requestData("http://services.hanselandpetal.com/restfuljson.php");
             }
             else {
                 Toast.makeText(this, "Network isn't available", Toast.LENGTH_LONG).show();
@@ -67,13 +67,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void requestData(String uri) {
         RequestPackage requestPackage = new RequestPackage();
-        requestPackage.setMethod("GET");
+        requestPackage.setMethod("POST");
         requestPackage.setUri(uri);
         requestPackage.setParam("param1", "Value 1");
         requestPackage.setParam("param2", "Value 2");
         requestPackage.setParam("param3", "Value 3");
         requestPackage.setParam("param4", "Value 4");
-
+        requestPackage.setParam("name", "Sungwon");
+        requestPackage.setParam("price", "23.21");
 
         //Initialise the MyTask(Async ) here and execute it...
         MyTask task = new MyTask();

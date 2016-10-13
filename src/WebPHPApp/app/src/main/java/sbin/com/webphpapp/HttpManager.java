@@ -3,6 +3,8 @@ package sbin.com.webphpapp;
 import android.util.Base64;
 import android.util.Log;
 
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -127,10 +129,13 @@ public class HttpManager {
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod(requestPackage.getMethod());
 
+            JSONObject json = new JSONObject(requestPackage.getParams());
+            String params = "params" + json.toString();
+
             if (requestPackage.getMethod().equals("POST")){
                 con.setDoOutput(true);
                 OutputStreamWriter writer = new OutputStreamWriter(con.getOutputStream());
-                writer.write(requestPackage.getEncodedParams());
+                writer.write(params);
                 writer.flush();
             }
 
