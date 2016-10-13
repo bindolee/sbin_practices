@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:title="@string/option"
+        android:id="@+id/action_main_option"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        tools:ignore="AppCompatResource" />
+</menu>
